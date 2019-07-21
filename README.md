@@ -1,6 +1,6 @@
 # Flower Keypoint Detector and Descriptor
 
-A simple, GPU first feature detector and descriptor inspired in DaisyDescriptor.
+A simple, GPU first feature detector and descriptor inspired in DaisyDescriptor. CPU version also provided, but it is mostly provided so you can get the same outputs even without a GPU.
 
 ## Motivation
 
@@ -9,7 +9,7 @@ I want to detect descriptors as robustly as SIFT, but more densely in a regular 
 ## Algorithm
 
 1. Daisy descriptor computation part: Use image gradientes to response to, lets say, 8 orientations, as in the original method, and 3 different gaussian pyramid lelvels. Do not normalize yet as that would artificially increase reponses. Gaussian levels provide scale invariance. For video, it is recommed to only use one level.
-2. Given some cell size, let's say 5x5 pixels, lets compute our K best descriptors and interpolate positions (more on this bellow)
+2. Given some cell size, let's say 10x10 pixels, lets compute our K best descriptors and interpolate positions (more on this bellow)
 3. Extract descriptor data using interpolated keypoint position.
 4. Transform/Unorient/Normalize descriptor data. Such transforms give us orientation and illuminacion invariance. This is step is optional and not needed if you are matching video, where these effects may be neglegted.
 
@@ -58,7 +58,8 @@ Next, we need to compute subpixel positions. We will do x and y separately. To d
 
 In order to compare descriptors, for a general case, we need to make them rotation invariant/illumination/scale. We will apply the following:
 
-- Scale. For each of the 3 orientation levels
+- Scale. For each of the 3 scale levels, we take the scale with the highest response.
+- Orientation. We will search for the strongest angle (of the 8 plus an smoothing kernel). Then, we will apply a shift such that we start with the strongest response.
 - Illumination. Each descriptor will be normalized at each coordinate, such that from their 8 orientations orientations will add up 255 (or 1.0 is storing as float).
 
 ## Interfaces
@@ -102,7 +103,12 @@ FlowerKeypointAndDescriptor {
 }
 
 FlowerDescriptorExtractor {
-    Extract(Image &image, vector<FlowerKeypointAndDescriptor>)
+    Extract(Image &image, vector<FlowerKeypointAndDescriptor>) {
+        ComputeDaisyDescriptor // GPU or CPU
+        ExtractInterpolatedKeypoints // GPU or CPU
+        EncodeDescriptor // GPU or CPU
+        virtual SaveDescriptors // CPU
+    }
 }
 
 ```
