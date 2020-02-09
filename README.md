@@ -15,30 +15,39 @@ I want to detect descriptors as robustly as SIFT, but more densely in a regular 
 
 ### Max response estimation
 
+Because we will compute the descriptor for the whole image similar to original Daisy descriptor, we will use that (before normalization) to compute the points with the best response to 8 orientations, although encoded using only 4 values. 
+
 Consider kernel:
 
 ``` 
-     x  k12  x
-k = k21 k22 k23
-     x  k32  x
+    k11 k12 k13
+k =  x  k22 k23
+     x   x   x
 ```
 
-Keypoint will be marked as maxima at some gaussian pyramid level if the following returns true:
+One way to compute reponse is computed at pixel `i` with some coordinates is:
 
 ```
-bool is_max = 
-    (
-        k22 == max(abs(k12 - k22)) +
-        k22 == max(abs(k32 - k22))
-    ) >= 1
-    (
-        k22 == max(abs(k21 - k22)) +
-        k22 == max(abs(k23 - k22))
-    ) >= 1
-) == 2
+  r_i = abs(k23 - k22) + abs(k13 - k22) + abs(k12 - k22) + abs (k11 - k22)
 ```
 
-Or in words: we have a local maxima if response is max in x or y direction.
+However, given that convolution is separable, we can also compute 2 gradient images for the image, call them `Gx` and `Gy`, and then:
+
+```
+  r_i = abs(Gx_i * cos(  0) + Gy_i * sin(  0)) +
+        abs(Gx_i * cos( 45) + Gy_i * sin( 45)) +
+        abs(Gx_i * cos( 90) + Gy_i * sin( 90)) + 
+        abs(Gx_i * cos(135) + Gy_i * sin(135)) 
+```
+
+In both cases, not the use of abs value. This is because we are measure response, so polarity is not important. However, descriptor encoding we prefer actually has polarity.
+
+After we have a response for each pixel position, then we look for a local maxima as
+
+```
+bool is_max = max(r_11, r_12 ... r_33) == r_22 == r_i
+```
+Where `r_11` and up to `r_33` are the responses for the 3 x 3 neighbors of pixel `i`, which is also denotes as `r_22`. We simply check that pixel is max. For this step, we don't care if contiguos points have the same response.
 
 #### Multiscale validation
 
@@ -155,3 +164,13 @@ FlowerDescriptorExtractor {
 * Top level project configuration, CI and other  *
 
 ```
+
+### Workplan
+
+[ ] Boilerplate
+[ ] Write `core` and `image` module, and its `test_image.cpp` file
+[ ] Generic keypoint reader and writer and visualizer for keypoints
+[ ] DaisyDescriptorComputation, writer and visualization
+[ ] FlowerExtractKeypoints
+[ ] Main apps
+[ ] More examples, docker and binary apps
