@@ -167,10 +167,10 @@ FlowerDescriptorExtractor {
 
 ### Workplan
 
-[ ] Boilerplate
-[ ] Write `core` and `image` module, and its `test_image.cpp` file
-[ ] Generic keypoint reader and writer and visualizer for keypoints
-[ ] DaisyDescriptorComputation, writer and visualization
-[ ] FlowerExtractKeypoints
-[ ] Main apps
-[ ] More examples, docker and binary apps
+- [ ] Boilerplate
+- [ ] Write `core` and `image` module, and its `test_image.cpp` file
+- [ ] Generic keypoint reader and writer and visualizer for keypoints
+- [ ] DaisyDescriptorComputation, writer and visualization
+- [ ] FlowerExtractKeypoints
+- [ ] Main apps
+- [ ] More examples, docker and binary apps
